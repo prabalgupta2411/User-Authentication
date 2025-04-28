@@ -1,0 +1,53 @@
+# Root ignores
+.DS_Store
+Thumbs.db
+
+# Ignore environment files in root
+.env
+.env.*
+
+# Backend ignores
+/backend/node_modules/
+/backend/dist/
+/backend/build/
+/backend/coverage/
+/backend/.env
+/backend/.env.*
+/backend/logs
+/backend/*.log
+/backend/npm-debug.log*
+/backend/yarn-debug.log*
+/backend/yarn-error.log*
+/backend/pnpm-debug.log*
+/backend/.tsbuildinfo
+/backend/*.tgz
+/backend/.vscode/
+/backend/.idea/
+/backend/*.suo
+/backend/*.ntvs*
+/backend/*.njsproj
+/backend/*.sln
+/backend/*.sw?
+
+# Frontend ignores
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/coverage/
+/frontend/.env
+/frontend/.env.*
+/frontend/logs
+/frontend/*.log
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/.tsbuildinfo
+/frontend/*.tgz
+/frontend/.vscode/
+/frontend/.idea/
+/frontend/*.suo
+/frontend/*.ntvs*
+/frontend/*.njsproj
+/frontend/*.sln
+/frontend/*.sw? 
