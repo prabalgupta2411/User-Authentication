@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 function Spinner() {
@@ -14,107 +15,43 @@ function Spinner() {
 }
 
 export default function AuthPage() {
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { signIn, signUp, signInWithGithub } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
-    const token = searchParams.get('token');
-    const user = searchParams.get('user');
-
-    if (error) {
-      toast.error(error);
-      return;
-    }
-
-    if (token && user) {
-      try {
-        const userData = JSON.parse(decodeURIComponent(user));
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        toast.success('Successfully authenticated with GitHub!');
-        navigate('/dashboard');
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-        toast.error('Failed to process authentication data');
-      }
-      return;
-    }
-
-    // If we have a code, redirect to backend to handle OAuth exchange
-    if (code) {
-      setLoading(true);
-      window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/github/callback?code=${code}`;
-    }
-  }, [searchParams, navigate]);
-
-  const handleGitHubLogin = () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-      const redirectUri = `${window.location.origin}/auth`;
-      
-      // Debug logging
-      console.log('GitHub Login - Environment Variables:', {
-        clientId: clientId ? 'Present' : 'Missing',
-        redirectUri,
-        origin: window.location.origin,
-        env: import.meta.env
-      });
-
-      if (!clientId) {
-        toast.error('GitHub Client ID is not configured');
-        return;
+      if (isLogin) {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password);
+        toast.success('Account created successfully! Please check your email for verification.');
       }
-
-      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
-      console.log('GitHub Auth URL:', githubAuthUrl);
-      
-      // Redirect in the same tab
-      window.location.href = githubAuthUrl;
+      navigate('/dashboard');
     } catch (error) {
-      console.error('GitHub login error:', error);
-      toast.error('Failed to initiate GitHub login');
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGithubLogin = async () => {
     setLoading(true);
-
     try {
-      const endpoint = isLogin ? 'login' : 'signup';
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
-      }
-
-      // Store the token in localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Show success message
-      toast.success(isLogin ? 'Successfully logged in!' : 'Account created successfully!');
-
-      // Redirect to dashboard
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Auth error:', error);
-      toast.error(error.message || 'Authentication failed');
-    } finally {
+      await signInWithGithub();
+      // Note: We don't set loading to false here because the page will redirect
+    } catch (error) {
+      console.error('GitHub login error:', error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to sign in with GitHub. Please try again.'
+      );
       setLoading(false);
     }
   };
@@ -155,7 +92,7 @@ export default function AuthPage() {
           <p className="text-zinc-200 text-center mb-8 text-base font-light">
             {isLogin ? 'Enter your credentials to login' : 'Enter your email below to create your account'}
           </p>
-          <form className="space-y-5 mb-6" onSubmit={handleAuth}>
+          <form className="space-y-5 mb-6" onSubmit={handleSubmit}>
             <Input 
               type="email" 
               placeholder="name@example.com" 
@@ -189,8 +126,8 @@ export default function AuthPage() {
           <Button 
             variant="outline" 
             className="w-full flex items-center justify-center gap-2 bg-zinc-900 text-white border-zinc-700 font-light px-4 py-3 rounded-md"
-            onClick={handleGitHubLogin}
             disabled={loading}
+            onClick={handleGithubLogin}
           >
             <svg height="20" width="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.415-4.033-1.415-.546-1.387-1.333-1.757-1.333-1.757-1.089-.745.084-.729.084-.729 1.205.084 1.84 1.236 1.84 1.236 1.07 1.834 2.809 1.304 3.495.997.108-.775.418-1.305.762-1.605-2.665-.305-5.466-1.334-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.119 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.803 5.624-5.475 5.921.43.372.823 1.102.823 2.222v3.293c0 .322.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
             {loading ? 'Authenticating...' : 'Continue with GitHub'}
