@@ -29,6 +29,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Status and priorities options
 const STATUS_OPTIONS = [
@@ -70,7 +78,6 @@ export default function TaskDashboard() {
   const [statusMenuOpen, setStatusMenuOpen] = useState<boolean>(false);
   const [priorityMenuOpen, setPriorityMenuOpen] = useState<boolean>(false);
   const [viewMenuOpen, setViewMenuOpen] = useState<boolean>(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [priorityFilter, setPriorityFilter] = useState<string[]>([]);
@@ -355,39 +362,32 @@ export default function TaskDashboard() {
             <p className="text-zinc-400 text-sm">Here's a list of your tasks for this month!</p>
           </div>
           <div className="flex items-center gap-2 relative">
-            {/* File Upload Button */}
-            {user && (
-              <Button
-                variant="outline"
-                className="bg-zinc-900 border-zinc-800 h-10 text-zinc-200"
-                onClick={() => navigate("/file-upload")}
-              >
-                Upload Files
-              </Button>
-            )}
             {/* Profile Button */}
-            <Button
-              variant="outline"
-              className="bg-zinc-900 border-zinc-800 h-10 w-10 p-0 text-zinc-200 relative"
-              onClick={() => setProfileMenuOpen((v) => !v)}
-            >
-              <User2 className="h-4 w-4" />
-            </Button>
-            {profileMenuOpen && (
-              <div className="absolute right-0 top-12 w-56 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg z-50">
-                <div className="px-4 py-3 border-b border-zinc-800">
-                  <div className="font-semibold text-zinc-100">{user?.user_metadata?.name || user?.email || "User"}</div>
-                  <div className="text-xs text-zinc-400">{user?.email}</div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="bg-zinc-900 border border-zinc-800 h-10 w-10 p-0 text-zinc-200 relative hover:bg-zinc-800 hover:text-zinc-100 rounded-md">
+                <User2 className="h-4 w-4 m-auto" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border border-zinc-800 text-zinc-100">
+                <div className="flex flex-col space-y-4 p-2 border-b border-zinc-800">
+                  <p className="text-sm font-medium leading-none text-zinc-100">{user?.user_metadata?.name || user?.email || "User"}</p>
+                  <p className="text-xs leading-none text-zinc-400">{user?.email}</p>
                 </div>
-                <div className="py-1">
-                  <button className="w-full text-left px-4 py-2 hover:bg-zinc-800 text-zinc-200">Profile</button>
-                  <button className="w-full text-left px-4 py-2 hover:bg-zinc-800 text-zinc-200">Billing</button>
-                  <button className="w-full text-left px-4 py-2 hover:bg-zinc-800 text-zinc-200">Settings</button>
-                  <button className="w-full text-left px-4 py-2 hover:bg-zinc-800 text-zinc-200">New Team</button>
-                </div>
-                <Separator className="bg-zinc-800" />
-                <button 
-                  className="w-full text-left px-4 py-2 text-red-400 hover:bg-zinc-800" 
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem 
+                  className="focus:bg-zinc-800 focus:text-zinc-100"
+                  onClick={() => navigate("/file-upload")}
+                >
+                  Upload Files
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="focus:bg-zinc-800 focus:text-zinc-100"
+                  onClick={() => navigate("/file-parser")}
+                >
+                  File Parser
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem 
+                  className="text-red-400 focus:bg-zinc-800 focus:text-red-400"
                   onClick={async () => {
                     try {
                       await signOut();
@@ -398,9 +398,9 @@ export default function TaskDashboard() {
                   }}
                 >
                   Log out
-                </button>
-              </div>
-            )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
