@@ -11,4 +11,6 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Ensure env variables are available in the client
+  envPrefix: 'VITE_',
 })
